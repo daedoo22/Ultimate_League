@@ -86,6 +86,7 @@ tools/
   devig.py                          ← Shin 디빅 · 블렌딩 · 엣지
   poisson.py                        ← 기대득점 → 마켓 확률
   calibrate.py                      ← 픽 기록 → 정확도 측정
+  fetch_results.py                  ← football-data.co.uk 결과 CSV 다운로드
   baserate.py                       ← 결과 CSV → 베이스레이트 갱신
 logs/
   picks.csv                         ← 기록 (헤더만)
@@ -141,13 +142,27 @@ python3 tools/calibrate.py logs/picks.csv --split
 
 ### 베이스레이트 갱신 (시즌마다)
 
-football-data.co.uk에서 리그 CSV를 받아서,
+football-data.co.uk는 회원가입도 API 키도 없이 CSV를 그냥 준다.
 
 ```bash
-python3 tools/baserate.py results_2025_26.csv --by league
+python3 tools/fetch_results.py --list                       # 리그·국가 코드 목록
+
+# 유럽 5대 리그, 최근 3시즌
+python3 tools/fetch_results.py --div E0 SP1 D1 I1 F1 --seasons 2425 2526 2627 -o results.csv
+python3 tools/baserate.py results.csv --by league
+
+# K리그 (한 파일에 전 시즌이 들어 있어 시즌을 거른다)
+python3 tools/fetch_results.py --extra KOR -o kleague.csv
+python3 tools/baserate.py kleague.csv --season 2025
 ```
 
 출력값으로 `reference/리그별_베이스레이트.md`를 덮어쓴다.
+네트워크가 막혀 있으면 <https://www.football-data.co.uk/data.php>에서 직접 받아도 된다.
+`baserate.py`는 `FTHG/FTAG`와 `HG/AG` 두 포맷을 자동 인식한다.
+
+**주의: 여기서 xG는 안 나온다.** λ 조립에 필요한 팀별 90분당 xG는
+FBref의 `Share & Export → Get table as CSV`나 Understat에서 따로 받는다.
+자세한 건 `reference/리그별_베이스레이트.md` 3-4절.
 
 ---
 
